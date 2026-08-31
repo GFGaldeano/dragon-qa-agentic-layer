@@ -1,0 +1,54 @@
+{
+  "name": "dragon-qa-agentic-layer",
+  "version": "0.1.0",
+  "description": "Agentic Quality Engineering layer for modern software delivery lifecycles.",
+  "author": "Gustavo Federico Galdeano <Dragon Pyramid>",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "bin": {
+    "dragon-qa": "dist/cli/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "dev": "tsx src/cli/index.ts",
+    "dragon": "tsx src/cli/index.ts",
+    "qa:init": "tsx src/cli/index.ts init",
+    "qa:run": "tsx src/cli/index.ts run",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\""
+  },
+  "keywords": [
+    "qa",
+    "testing",
+    "agentic-ai",
+    "quality-engineering",
+    "playwright",
+    "automation",
+    "ai-testing",
+    "sdlc",
+    "software-testing"
+  ],
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "commander": "^12.1.0",
+    "playwright": "^1.55.0",
+    "yaml": "^2.8.1",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^22.18.0",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

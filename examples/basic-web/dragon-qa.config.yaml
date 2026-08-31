@@ -1,0 +1,30 @@
+﻿project:
+  name: basic-web-example
+  baseUrl: https://example.com
+
+autonomy:
+  level: assist
+
+testing:
+  ui: true
+  api: false
+  accessibility: false
+  visual: false
+
+browser:
+  engine: chromium
+  headless: true
+  timeoutMs: 30000
+
+evidence:
+  screenshots: true
+  trace: true
+  video: false
+
+reporting:
+  markdown: true
+  json: true
+
+providers:
+  planner: deterministic
+  failureAnalyzer: deterministic
