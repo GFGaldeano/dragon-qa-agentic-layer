@@ -1,6 +1,6 @@
 {
   "name": "dragon-qa-agentic-layer",
-  "version": "0.1.0",
+  "version": "0.1.0-alpha",
   "description": "Agentic Quality Engineering layer for modern software delivery lifecycles.",
   "author": "Gustavo Federico Galdeano <Dragon Pyramid>",
   "license": "MIT",
