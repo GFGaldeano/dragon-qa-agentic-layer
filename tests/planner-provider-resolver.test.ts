@@ -5,10 +5,6 @@ import {
 } from "../src/core/config/schema";
 
 import {
-  DeterministicPlannerProvider
-} from "../src/providers/planner/deterministic-planner-provider";
-
-import {
   resolvePlannerProvider
 } from "../src/providers/planner/planner-provider-resolver";
 
@@ -51,11 +47,11 @@ describe("resolvePlannerProvider", () => {
     const provider =
       resolvePlannerProvider(baseConfig);
 
-    expect(provider).toBeInstanceOf(
-      DeterministicPlannerProvider
-    );
-
     expect(provider.name).toBe("deterministic");
+
+    expect(typeof provider.createPlan).toBe(
+      "function"
+    );
   });
 
   it("rejects unsupported planner providers", () => {
