@@ -5,6 +5,9 @@ import path from "node:path";
 
 import { loadDragonConfig } from "../core/config/loader";
 import { DragonOrchestrator } from "../core/orchestration/dragon-orchestrator";
+import {
+  resolvePlannerModelClient
+} from "../providers/planner/llm/planner-model-client-resolver";
 
 const program = new Command();
 
@@ -101,7 +104,23 @@ program
 
       console.log("-> Analyzing requirement...");
 
-      const orchestrator = new DragonOrchestrator(config);
+      const plannerModelClient =
+        resolvePlannerModelClient(
+          config,
+          process.env
+        );
+
+      const orchestrator =
+        new DragonOrchestrator(
+          config,
+          plannerModelClient
+            ? {
+                planner: {
+                  plannerModelClient
+                }
+              }
+            : {}
+        );
 
       const execution = await orchestrator.run(options.requirement);
       const result = execution.result;
