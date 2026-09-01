@@ -37,6 +37,8 @@ export function buildPlannerPrompt(
     "- Include happy-path coverage when applicable.",
     "- Include negative and edge-case coverage when relevant.",
     "- Prioritize scenarios according to product risk.",
+    "- Do not invent product features, UI elements, business rules, thresholds, integrations, or behaviors that are not stated or strongly supported by the requirement.",
+    "- When information is missing, keep the scenario generic instead of assuming implementation details.",
     "- Do not generate scenario IDs.",
     "- Do not choose execution modes.",
     "- Do not generate timestamps.",
