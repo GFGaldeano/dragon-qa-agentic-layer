@@ -19,3 +19,7 @@ export * from "./providers/planner/planner-provider-resolver";
 export * from "./providers/planner/llm/planner-model-output-schema";
 export * from "./providers/planner/llm/planner-model-output-parser";
 export * from "./providers/planner/llm/planner-prompt-builder";
+export * from "./core/planning/test-plan-assembler";
+export * from "./core/contracts/planning-proposal";
+export * from "./core/planning/execution-policy";
+export * from "./core/planning/safe-default-execution-policy";
