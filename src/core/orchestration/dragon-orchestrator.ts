@@ -5,8 +5,8 @@ import {
 } from "../../agents/requirements/requirements-agent";
 
 import {
-  DeterministicPlannerProvider
-} from "../../providers/planner/deterministic-planner-provider";
+  resolvePlannerProvider
+} from "../../providers/planner/planner-provider-resolver";
 
 import {
   FailureAnalyzer
@@ -61,7 +61,7 @@ export class DragonOrchestrator {
       new RequirementsAgent();
 
     const planner =
-      new DeterministicPlannerProvider();
+      resolvePlannerProvider(this.config);
 
     const failureAnalyzer =
       new FailureAnalyzer();

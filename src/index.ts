@@ -14,3 +14,4 @@ export * from "./evidence/evidence-manager";
 export * from "./reporting/reporter";
 export * from "./providers/planner/planner-provider";
 export * from "./providers/planner/deterministic-planner-provider";
+export * from "./providers/planner/planner-provider-resolver";
