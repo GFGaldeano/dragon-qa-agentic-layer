@@ -14,9 +14,19 @@ import {
   TestPlanSchema
 } from "../contracts/test-plan-schema";
 
+import {
+  ExecutionPolicy
+} from "./execution-policy";
+
+import {
+  SafeDefaultExecutionPolicy
+} from "./safe-default-execution-policy";
+
 export function assembleTestPlan(
   requirement: RequirementInput,
-  proposal: PlanningProposal
+  proposal: PlanningProposal,
+  executionPolicy: ExecutionPolicy =
+    new SafeDefaultExecutionPolicy()
 ): TestPlan {
   const scenarios: TestScenario[] =
     proposal.scenarios.map(
@@ -25,7 +35,10 @@ export function assembleTestPlan(
         title: scenario.title,
         description: scenario.description,
         kind: scenario.kind,
-        executionMode: "manual-review",
+        executionMode:
+          executionPolicy.resolveExecutionMode(
+            scenario
+          ),
         priority: scenario.priority,
         expectedResult: scenario.expectedResult
       })
