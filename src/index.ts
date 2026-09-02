@@ -9,6 +9,8 @@ export * from "./agents/planner/deterministic-planner";
 export * from "./agents/failure-analyzer/failure-analyzer";
 
 export * from "./runners/playwright/playwright-runner";
+export * from "./runners/executors/scenario-executor";
+export * from "./runners/executors/scenario-executor-resolver";
 
 export * from "./evidence/evidence-manager";
 export * from "./reporting/reporter";
