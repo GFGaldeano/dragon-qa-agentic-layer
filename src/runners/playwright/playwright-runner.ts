@@ -74,6 +74,22 @@ export class PlaywrightRunner {
       };
     }
 
+    if (
+      scenario.executionIntent?.type !==
+      "application-availability"
+    ) {
+      return {
+        scenarioId: scenario.id,
+        scenarioTitle: scenario.title,
+        status: "review",
+        verdict: "REVIEW",
+        durationMs: Date.now() - started,
+        message:
+          "Automated execution requires a supported execution intent.",
+        evidence: []
+      };
+    }
+
     const scenarioDirectory =
       this.evidenceManager.createScenarioDirectory(
         context.runDirectory,

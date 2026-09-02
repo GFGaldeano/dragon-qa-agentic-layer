@@ -21,6 +21,11 @@ export const TestScenarioSchema = z.object({
     "api"
   ]),
   executionMode: z.enum(["automated", "manual-review"]),
+  executionIntent: z.discriminatedUnion("type", [
+    z.object({
+      type: z.literal("application-availability")
+    }).strict()
+  ]).optional(),
   priority: z.enum(["critical", "high", "medium", "low"]),
   expectedResult: z.string().min(1)
 });

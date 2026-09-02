@@ -39,6 +39,14 @@ export function assembleTestPlan(
           executionPolicy.resolveExecutionMode(
             scenario
           ),
+        executionIntent:
+          scenario.executionCapability ===
+          "application-availability"
+            ? {
+                type:
+                  "application-availability"
+              }
+            : undefined,
         priority: scenario.priority,
         expectedResult: scenario.expectedResult
       })

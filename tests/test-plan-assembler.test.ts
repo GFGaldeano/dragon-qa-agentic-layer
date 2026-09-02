@@ -9,6 +9,73 @@ import {
 } from "../src/core/planning/test-plan-assembler";
 
 describe("assembleTestPlan", () => {
+  it("preserves trusted execution intent", () => {
+    const plan = assembleTestPlan(
+      {
+        text:
+          "The application must be reachable"
+      },
+      {
+        scenarios: [
+          {
+            title:
+              "Application availability",
+            description:
+              "Validate application availability",
+            kind: "smoke",
+            priority: "critical",
+            expectedResult:
+              "Application is reachable",
+            executionCapability:
+              "application-availability"
+          }
+        ]
+      },
+      {
+        resolveExecutionMode:
+          () => "automated"
+      }
+    );
+
+    expect(
+      plan.scenarios[0].executionIntent
+    ).toEqual({
+      type:
+        "application-availability"
+    });
+  });
+
+  it("does not create execution intent for untrusted scenarios", () => {
+    const plan = assembleTestPlan(
+      {
+        text:
+          "User can sign in"
+      },
+      {
+        scenarios: [
+          {
+            title:
+              "Successful sign in",
+            description:
+              "Validate successful sign in",
+            kind: "happy-path",
+            priority: "high",
+            expectedResult:
+              "User reaches the application"
+          }
+        ]
+      },
+      {
+        resolveExecutionMode:
+          () => "manual-review"
+      }
+    );
+
+    expect(
+      plan.scenarios[0].executionIntent
+    ).toBeUndefined();
+  });
+
   it("assembles a valid core-owned test plan", () => {
     const requirement = {
       text: "User can reset a forgotten password",
