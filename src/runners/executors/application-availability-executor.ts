@@ -22,6 +22,10 @@ import {
 } from "../../agents/failure-analyzer/failure-analyzer";
 
 import {
+  extractFailureSignal
+} from "../../agents/failure-analyzer/failure-signal-extractor";
+
+import {
   EvidenceManager
 } from "../../evidence/evidence-manager";
 
@@ -169,7 +173,9 @@ export class ApplicationAvailabilityExecutor
     } catch (error) {
       const verdict =
         this.failureAnalyzer.classify(
-          error
+          extractFailureSignal(
+            error
+          )
         );
 
       return {
