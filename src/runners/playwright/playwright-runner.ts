@@ -1,13 +1,3 @@
-import path from "node:path";
-
-import {
-  Browser,
-  BrowserContext,
-  chromium,
-  firefox,
-  webkit
-} from "playwright";
-
 import {
   DragonConfig
 } from "../../core/config/schema";
@@ -25,34 +15,38 @@ import {
   EvidenceManager
 } from "../../evidence/evidence-manager";
 
+import {
+  ApplicationAvailabilityExecutor
+} from "../executors/application-availability-executor";
+
+import {
+  ScenarioExecutorResolver
+} from "../executors/scenario-executor-resolver";
+
 export interface PlaywrightRunContext {
   runDirectory: string;
   baseUrl: string;
 }
 
 export class PlaywrightRunner {
+  private readonly executorResolver:
+    ScenarioExecutorResolver;
+
   constructor(
     private readonly config: DragonConfig,
     private readonly evidenceManager: EvidenceManager,
-    private readonly failureAnalyzer: FailureAnalyzer
-  ) {}
-
-  private async launchBrowser(): Promise<Browser> {
-    const options = {
-      headless: this.config.browser.headless
-    };
-
-    switch (this.config.browser.engine) {
-      case "firefox":
-        return firefox.launch(options);
-
-      case "webkit":
-        return webkit.launch(options);
-
-      case "chromium":
-      default:
-        return chromium.launch(options);
-    }
+    private readonly failureAnalyzer: FailureAnalyzer,
+    executorResolver?: ScenarioExecutorResolver
+  ) {
+    this.executorResolver =
+      executorResolver ??
+      new ScenarioExecutorResolver([
+        new ApplicationAvailabilityExecutor(
+          this.config,
+          this.evidenceManager,
+          this.failureAnalyzer
+        )
+      ]);
   }
 
   async execute(
@@ -61,151 +55,64 @@ export class PlaywrightRunner {
   ): Promise<TestExecutionResult> {
     const started = Date.now();
 
-    if (scenario.executionMode === "manual-review") {
+    if (
+      scenario.executionMode ===
+      "manual-review"
+    ) {
       return {
         scenarioId: scenario.id,
-        scenarioTitle: scenario.title,
+        scenarioTitle:
+          scenario.title,
         status: "review",
         verdict: "REVIEW",
-        durationMs: Date.now() - started,
+        durationMs:
+          Date.now() - started,
         message:
           "Scenario generated successfully but requires QA review before automated execution.",
         evidence: []
       };
     }
 
-    if (
-      scenario.executionIntent?.type !==
-      "application-availability"
-    ) {
+    if (!scenario.executionIntent) {
       return {
         scenarioId: scenario.id,
-        scenarioTitle: scenario.title,
+        scenarioTitle:
+          scenario.title,
         status: "review",
         verdict: "REVIEW",
-        durationMs: Date.now() - started,
+        durationMs:
+          Date.now() - started,
         message:
           "Automated execution requires a supported execution intent.",
         evidence: []
       };
     }
 
-    const scenarioDirectory =
-      this.evidenceManager.createScenarioDirectory(
-        context.runDirectory,
-        scenario.id
-      );
-
-    let browser: Browser | undefined;
-    let browserContext: BrowserContext | undefined;
-
     try {
-      browser = await this.launchBrowser();
+      const executor =
+        this.executorResolver.resolve(
+          scenario.executionIntent
+        );
 
-      browserContext = await browser.newContext({
-        recordVideo: this.config.evidence.video
-          ? {
-              dir: scenarioDirectory
-            }
-          : undefined
-      });
-
-      if (this.config.evidence.trace) {
-        await browserContext.tracing.start({
-          screenshots: true,
-          snapshots: true,
-          sources: true
-        });
-      }
-
-      const page = await browserContext.newPage();
-
-      page.setDefaultTimeout(
-        this.config.browser.timeoutMs
+      return await executor.execute(
+        scenario,
+        context
       );
-
-      await page.goto(context.baseUrl, {
-        waitUntil: "domcontentloaded",
-        timeout: this.config.browser.timeoutMs
-      });
-
-      const evidence: TestExecutionResult["evidence"] = [];
-
-      if (this.config.evidence.screenshots) {
-        const screenshotPath = path.join(
-          scenarioDirectory,
-          "page.png"
-        );
-
-        await page.screenshot({
-          path: screenshotPath,
-          fullPage: true
-        });
-
-        evidence.push({
-          type: "screenshot",
-          path: screenshotPath
-        });
-      }
-
-      if (this.config.evidence.trace) {
-        const tracePath = path.join(
-          scenarioDirectory,
-          "trace.zip"
-        );
-
-        await browserContext.tracing.stop({
-          path: tracePath
-        });
-
-        evidence.push({
-          type: "trace",
-          path: tracePath
-        });
-      }
-
-      return {
-        scenarioId: scenario.id,
-        scenarioTitle: scenario.title,
-        status: "passed",
-        verdict: "PASS",
-        durationMs: Date.now() - started,
-        message:
-          "Automated browser verification completed successfully.",
-        evidence
-      };
     } catch (error) {
-      const verdict =
-        this.failureAnalyzer.classify(error);
-
       return {
         scenarioId: scenario.id,
-        scenarioTitle: scenario.title,
-        status: "failed",
-        verdict,
-        durationMs: Date.now() - started,
+        scenarioTitle:
+          scenario.title,
+        status: "review",
+        verdict: "REVIEW",
+        durationMs:
+          Date.now() - started,
         message:
           error instanceof Error
             ? error.message
             : String(error),
         evidence: []
       };
-    } finally {
-      if (browserContext) {
-        try {
-          await browserContext.close();
-        } catch {
-          // Ignore cleanup failures.
-        }
-      }
-
-      if (browser) {
-        try {
-          await browser.close();
-        } catch {
-          // Ignore cleanup failures.
-        }
-      }
     }
   }
 }
