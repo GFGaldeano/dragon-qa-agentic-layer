@@ -1,4 +1,10 @@
-import { DragonConfig } from "../../core/config/schema";
+import {
+  DragonConfig
+} from "../../core/config/schema";
+
+import {
+  AutonomyExecutionPolicy
+} from "../../core/planning/autonomy-execution-policy";
 
 import {
   DeterministicPlannerProvider
@@ -22,13 +28,24 @@ export interface PlannerProviderResolverDependencies {
 
 export function resolvePlannerProvider(
   config: DragonConfig,
-  dependencies: PlannerProviderResolverDependencies = {}
+  dependencies:
+    PlannerProviderResolverDependencies = {}
 ): PlannerProvider {
-  const provider = config.providers.planner;
+
+  const provider =
+    config.providers.planner;
+
+  const executionPolicy =
+    new AutonomyExecutionPolicy(
+      config.autonomy.level
+    );
 
   switch (provider) {
+
     case "deterministic":
-      return new DeterministicPlannerProvider();
+      return new DeterministicPlannerProvider(
+        executionPolicy
+      );
 
     case "llm": {
       const client =
@@ -40,7 +57,10 @@ export function resolvePlannerProvider(
         );
       }
 
-      return new LlmPlannerProvider(client);
+      return new LlmPlannerProvider(
+        client,
+        executionPolicy
+      );
     }
 
     default:

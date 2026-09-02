@@ -8,6 +8,10 @@ import {
 } from "../../../core/contracts/planning-proposal";
 
 import {
+  ExecutionPolicy
+} from "../../../core/planning/execution-policy";
+
+import {
   assembleTestPlan
 } from "../../../core/planning/test-plan-assembler";
 
@@ -29,15 +33,20 @@ import {
 
 export class LlmPlannerProvider
   implements PlannerProvider {
+
   readonly name = "llm";
 
   constructor(
-    private readonly client: PlannerModelClient
+    private readonly client:
+      PlannerModelClient,
+    private readonly executionPolicy?:
+      ExecutionPolicy
   ) {}
 
   async createPlan(
     requirement: RequirementInput
   ): Promise<TestPlan> {
+
     const prompt =
       buildPlannerPrompt(requirement);
 
@@ -53,7 +62,8 @@ export class LlmPlannerProvider
 
     return assembleTestPlan(
       requirement,
-      proposal
+      proposal,
+      this.executionPolicy
     );
   }
 }
