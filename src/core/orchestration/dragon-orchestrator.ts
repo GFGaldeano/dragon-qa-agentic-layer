@@ -37,6 +37,10 @@ import {
   calculateFinalVerdict
 } from "../verdicts/verdict-engine";
 
+import {
+  requiresHumanApproval
+} from "../verdicts/human-approval-policy";
+
 export interface DragonOrchestratorDependencies {
   planner?: PlannerProviderResolverDependencies;
 }
@@ -138,8 +142,10 @@ export class DragonOrchestrator {
       finalVerdict,
 
       humanApprovalRequired:
-        this.config.autonomy.level !==
-        "autonomous"
+        requiresHumanApproval(
+          this.config.autonomy.level,
+          results
+        )
     };
 
     if (this.config.reporting.json) {

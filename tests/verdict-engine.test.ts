@@ -1,57 +1,166 @@
-﻿import { describe, expect, it } from "vitest";
+import {
+  describe,
+  expect,
+  it
+} from "vitest";
+
+import {
+  TestExecutionResult,
+  QAVerdict
+} from "../src/core/contracts/types";
 
 import {
   calculateFinalVerdict
 } from "../src/core/verdicts/verdict-engine";
 
-describe("calculateFinalVerdict", () => {
-  it("returns REVIEW when human review is required", () => {
-    const verdict = calculateFinalVerdict([
-      {
-        scenarioId: "S001",
-        scenarioTitle: "Smoke",
-        status: "passed",
-        verdict: "PASS",
-        durationMs: 10,
-        message: "ok",
-        evidence: []
-      },
-      {
-        scenarioId: "S002",
-        scenarioTitle: "Business flow",
-        status: "review",
-        verdict: "REVIEW",
-        durationMs: 0,
-        message: "review",
-        evidence: []
+function createResult(
+  verdict: QAVerdict
+): TestExecutionResult {
+  return {
+    scenarioId: `S-${verdict}`,
+    scenarioTitle: verdict,
+    status:
+      verdict === "PASS"
+        ? "passed"
+        : verdict === "REVIEW"
+          ? "review"
+          : "failed",
+    verdict,
+    durationMs: 10,
+    message: verdict,
+    evidence: []
+  };
+}
+
+describe(
+  "calculateFinalVerdict",
+  () => {
+    it(
+      "fails closed to REVIEW when there are no results",
+      () => {
+        expect(
+          calculateFinalVerdict([])
+        ).toBe("REVIEW");
       }
-    ]);
+    );
 
-    expect(verdict).toBe("REVIEW");
-  });
-
-  it("prioritizes PRODUCT_BUG", () => {
-    const verdict = calculateFinalVerdict([
-      {
-        scenarioId: "S001",
-        scenarioTitle: "Smoke",
-        status: "passed",
-        verdict: "PASS",
-        durationMs: 10,
-        message: "ok",
-        evidence: []
-      },
-      {
-        scenarioId: "S002",
-        scenarioTitle: "Feature",
-        status: "failed",
-        verdict: "PRODUCT_BUG",
-        durationMs: 20,
-        message: "bug",
-        evidence: []
+    it(
+      "returns PASS when all results pass",
+      () => {
+        expect(
+          calculateFinalVerdict([
+            createResult("PASS"),
+            createResult("PASS")
+          ])
+        ).toBe("PASS");
       }
-    ]);
+    );
 
-    expect(verdict).toBe("PRODUCT_BUG");
-  });
-});
+    it.each([
+      ["REVIEW", "REVIEW"],
+      ["FLAKY", "FLAKY"],
+      ["TEST_ISSUE", "TEST_ISSUE"],
+      ["ENVIRONMENT", "ENVIRONMENT"],
+      ["PRODUCT_BUG", "PRODUCT_BUG"]
+    ] as const)(
+      "prioritizes %s over PASS",
+      (
+        higherVerdict,
+        expectedVerdict
+      ) => {
+        expect(
+          calculateFinalVerdict([
+            createResult("PASS"),
+            createResult(
+              higherVerdict
+            )
+          ])
+        ).toBe(expectedVerdict);
+      }
+    );
+
+    it.each([
+      [
+        [
+          "REVIEW",
+          "FLAKY"
+        ],
+        "FLAKY"
+      ],
+      [
+        [
+          "REVIEW",
+          "TEST_ISSUE"
+        ],
+        "TEST_ISSUE"
+      ],
+      [
+        [
+          "FLAKY",
+          "ENVIRONMENT"
+        ],
+        "ENVIRONMENT"
+      ],
+      [
+        [
+          "TEST_ISSUE",
+          "PRODUCT_BUG"
+        ],
+        "PRODUCT_BUG"
+      ],
+      [
+        [
+          "ENVIRONMENT",
+          "PRODUCT_BUG",
+          "REVIEW"
+        ],
+        "PRODUCT_BUG"
+      ]
+    ] as const)(
+      "returns the highest-priority verdict for %j",
+      (
+        verdicts,
+        expectedVerdict
+      ) => {
+        const results =
+          verdicts.map(
+            (verdict) =>
+              createResult(verdict)
+          );
+
+        expect(
+          calculateFinalVerdict(results)
+        ).toBe(expectedVerdict);
+      }
+    );
+
+    it(
+      "is independent of result order",
+      () => {
+        const first =
+          calculateFinalVerdict([
+            createResult("REVIEW"),
+            createResult("PASS"),
+            createResult("ENVIRONMENT"),
+            createResult("FLAKY")
+          ]);
+
+        const second =
+          calculateFinalVerdict([
+            createResult("FLAKY"),
+            createResult("ENVIRONMENT"),
+            createResult("PASS"),
+            createResult("REVIEW")
+          ]);
+
+        expect(first).toBe(
+          "ENVIRONMENT"
+        );
+
+        expect(second).toBe(
+          "ENVIRONMENT"
+        );
+      }
+    );
+  }
+);
