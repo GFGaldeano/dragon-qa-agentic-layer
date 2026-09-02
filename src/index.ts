@@ -23,3 +23,8 @@ export * from "./core/planning/test-plan-assembler";
 export * from "./core/contracts/planning-proposal";
 export * from "./core/planning/execution-policy";
 export * from "./core/planning/safe-default-execution-policy";
+
+export * from "./providers/planner/llm/planner-model-client";
+export * from "./providers/planner/llm/llm-planner-provider";
+export * from "./providers/planner/llm/openai-compatible-planner-model-client";
+export * from "./providers/planner/llm/planner-model-client-resolver";

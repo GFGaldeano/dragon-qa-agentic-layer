@@ -11,7 +11,8 @@
   "files": [
     "dist",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "dragon-qa.config.example.yaml"
   ],
   "scripts": {
     "dev": "tsx src/cli/index.ts",
@@ -20,6 +21,7 @@
     "qa:run": "tsx src/cli/index.ts run",
     "typecheck": "tsc --noEmit",
     "build": "tsc",
+    "prepack": "npm run clean && npm run build",
     "test": "vitest run",
     "test:watch": "vitest",
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\""

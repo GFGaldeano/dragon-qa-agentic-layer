@@ -5,6 +5,7 @@ import {
 } from "../../agents/requirements/requirements-agent";
 
 import {
+  PlannerProviderResolverDependencies,
   resolvePlannerProvider
 } from "../../providers/planner/planner-provider-resolver";
 
@@ -36,9 +37,15 @@ import {
   calculateFinalVerdict
 } from "../verdicts/verdict-engine";
 
+export interface DragonOrchestratorDependencies {
+  planner?: PlannerProviderResolverDependencies;
+}
+
 export class DragonOrchestrator {
   constructor(
-    private readonly config: DragonConfig
+    private readonly config: DragonConfig,
+    private readonly dependencies:
+      DragonOrchestratorDependencies = {}
   ) {}
 
   async run(
@@ -61,7 +68,10 @@ export class DragonOrchestrator {
       new RequirementsAgent();
 
     const planner =
-      resolvePlannerProvider(this.config);
+      resolvePlannerProvider(
+        this.config,
+        this.dependencies.planner
+      );
 
     const failureAnalyzer =
       new FailureAnalyzer();

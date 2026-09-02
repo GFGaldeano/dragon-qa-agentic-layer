@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import { Command } from "commander";
 import chalk from "chalk";
 import fs from "node:fs";
@@ -5,6 +6,9 @@ import path from "node:path";
 
 import { loadDragonConfig } from "../core/config/loader";
 import { DragonOrchestrator } from "../core/orchestration/dragon-orchestrator";
+import {
+  resolvePlannerModelClient
+} from "../providers/planner/llm/planner-model-client-resolver";
 
 const program = new Command();
 
@@ -18,7 +22,7 @@ function header(): void {
 program
   .name("dragon-qa")
   .description("Agentic Quality Engineering for Modern SDLC")
-  .version("0.1.0");
+  .version("0.1.0-alpha");
 
 program
   .command("init")
@@ -31,8 +35,14 @@ program
     const configPath = path.join(cwd, "dragon-qa.config.yaml");
     const evidencePath = path.join(cwd, ".dragon-qa", "runs");
 
+    const packageRoot = path.resolve(
+      __dirname,
+      "..",
+      ".."
+    );
+
     const exampleConfigPath = path.join(
-      cwd,
+      packageRoot,
       "dragon-qa.config.example.yaml"
     );
 
@@ -45,17 +55,32 @@ program
           "  name: my-project",
           "  baseUrl: http://localhost:3000",
           "",
-          "autonomy: assist",
+          "autonomy:",
+          "  level: assist",
           "",
-          "runner:",
-          "  type: playwright",
+          "testing:",
+          "  ui: true",
+          "  api: false",
+          "  accessibility: false",
+          "  visual: false",
+          "",
+          "browser:",
+          "  engine: chromium",
           "  headless: true",
+          "  timeoutMs: 30000",
           "",
           "evidence:",
-          "  directory: .dragon-qa/runs",
           "  screenshots: true",
-          "  traces: true",
+          "  trace: true",
           "  video: false",
+          "",
+          "reporting:",
+          "  markdown: true",
+          "  json: true",
+          "",
+          "providers:",
+          "  planner: deterministic",
+          "  failureAnalyzer: deterministic",
           ""
         ].join("\n");
 
@@ -101,7 +126,23 @@ program
 
       console.log("-> Analyzing requirement...");
 
-      const orchestrator = new DragonOrchestrator(config);
+      const plannerModelClient =
+        resolvePlannerModelClient(
+          config,
+          process.env
+        );
+
+      const orchestrator =
+        new DragonOrchestrator(
+          config,
+          plannerModelClient
+            ? {
+                planner: {
+                  plannerModelClient
+                }
+              }
+            : {}
+        );
 
       const execution = await orchestrator.run(options.requirement);
       const result = execution.result;
