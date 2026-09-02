@@ -88,16 +88,13 @@ export class PlaywrightRunner {
       };
     }
 
+    let executor;
+
     try {
-      const executor =
+      executor =
         this.executorResolver.resolve(
           scenario.executionIntent
         );
-
-      return await executor.execute(
-        scenario,
-        context
-      );
     } catch (error) {
       return {
         scenarioId: scenario.id,
@@ -111,6 +108,31 @@ export class PlaywrightRunner {
           error instanceof Error
             ? error.message
             : String(error),
+        evidence: []
+      };
+    }
+
+    try {
+      return await executor.execute(
+        scenario,
+        context
+      );
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : String(error);
+
+      return {
+        scenarioId: scenario.id,
+        scenarioTitle:
+          scenario.title,
+        status: "review",
+        verdict: "REVIEW",
+        durationMs:
+          Date.now() - started,
+        message:
+          `Unexpected scenario executor failure: ${message}`,
         evidence: []
       };
     }
