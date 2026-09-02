@@ -17,6 +17,11 @@ export type ExecutionMode =
   | "automated"
   | "manual-review";
 
+export type ExecutionIntent =
+  | {
+      type: "application-availability";
+    };
+
 export type ResultStatus =
   | "passed"
   | "failed"
@@ -44,6 +49,7 @@ export interface TestScenario {
   description: string;
   kind: ScenarioKind;
   executionMode: ExecutionMode;
+  executionIntent?: ExecutionIntent;
   priority: "critical" | "high" | "medium" | "low";
   expectedResult: string;
 }
