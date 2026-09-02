@@ -2,30 +2,38 @@ import {
   QAVerdict
 } from "../../core/contracts/types";
 
+import {
+  FailureSignal
+} from "./failure-signal";
+
 export class FailureAnalyzer {
-  classify(error: unknown): QAVerdict {
-    const message =
-      error instanceof Error
-        ? error.message.toLowerCase()
-        : String(error).toLowerCase();
-
+  classify(
+    signal: FailureSignal
+  ): QAVerdict {
     if (
-      message.includes("net::") ||
-      message.includes("connection refused") ||
-      message.includes("dns") ||
-      message.includes("name_not_resolved")
+      signal.retryAttempt !== undefined &&
+      signal.retryAttempt > 0 &&
+      signal.retrySucceeded === true
     ) {
-      return "ENVIRONMENT";
+      return "FLAKY";
     }
 
-    if (
-      message.includes("timeout") ||
-      message.includes("selector") ||
-      message.includes("locator")
-    ) {
-      return "TEST_ISSUE";
-    }
+    switch (signal.type) {
+      case "network":
+        return "ENVIRONMENT";
 
-    return "REVIEW";
+      case "selector":
+        return "TEST_ISSUE";
+
+      case "assertion":
+        return "PRODUCT_BUG";
+
+      case "timeout":
+      case "http":
+      case "browser":
+      case "unknown":
+      default:
+        return "REVIEW";
+    }
   }
 }
