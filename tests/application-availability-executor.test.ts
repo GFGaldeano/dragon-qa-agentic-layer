@@ -114,5 +114,68 @@ describe(
         );
       }
     );
+
+    it(
+      "classifies connection failures as environment issues",
+      async () => {
+        const failureConfig:
+          DragonConfig = {
+          ...config,
+
+          browser: {
+            ...config.browser,
+            timeoutMs: 3000
+          }
+        };
+
+        const executor =
+          new ApplicationAvailabilityExecutor(
+            failureConfig,
+            new EvidenceManager(),
+            new FailureAnalyzer()
+          );
+
+        const scenario:
+          TestScenario = {
+          id: "S001",
+          title:
+            "Application availability",
+          description:
+            "Verify that the application is reachable.",
+          kind: "smoke",
+          executionMode: "automated",
+          executionIntent: {
+            type:
+              "application-availability"
+          },
+          priority: "critical",
+          expectedResult:
+            "The application loads successfully."
+        };
+
+        const result =
+          await executor.execute(
+            scenario,
+            {
+              runDirectory:
+                ".dragon-qa/test-runs",
+              baseUrl:
+                "http://127.0.0.1:65534"
+            }
+          );
+
+        expect(result.status).toBe(
+          "failed"
+        );
+
+        expect(result.verdict).toBe(
+          "ENVIRONMENT"
+        );
+
+        expect(
+          result.message.length
+        ).toBeGreaterThan(0);
+      }
+    );
   }
 );
