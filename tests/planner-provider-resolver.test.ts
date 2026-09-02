@@ -58,6 +58,55 @@ describe("resolvePlannerProvider", () => {
     );
   });
 
+  it("keeps deterministic availability automated in assist mode", async () => {
+    const provider =
+      resolvePlannerProvider(baseConfig);
+
+    const plan =
+      await provider.createPlan({
+        text:
+          "The website must be reachable"
+      });
+
+    expect(
+      plan.scenarios[0].executionMode
+    ).toBe("automated");
+
+    expect(
+      plan.scenarios.slice(1).every(
+        (scenario) =>
+          scenario.executionMode ===
+          "manual-review"
+      )
+    ).toBe(true);
+  });
+
+  it("prevents deterministic execution in observe mode", async () => {
+    const config: DragonConfig = {
+      ...baseConfig,
+      autonomy: {
+        level: "observe"
+      }
+    };
+
+    const provider =
+      resolvePlannerProvider(config);
+
+    const plan =
+      await provider.createPlan({
+        text:
+          "The website must be reachable"
+      });
+
+    expect(
+      plan.scenarios.every(
+        (scenario) =>
+          scenario.executionMode ===
+          "manual-review"
+      )
+    ).toBe(true);
+  });
+
   it("resolves llm planner provider when a model client is supplied", () => {
     const client: PlannerModelClient = {
       name: "fake",

@@ -12,6 +12,10 @@ import {
 } from "../../core/contracts/test-plan-schema";
 
 import {
+  ExecutionPolicy
+} from "../../core/planning/execution-policy";
+
+import {
   PlannerProvider
 } from "./planner-provider";
 
@@ -20,12 +24,22 @@ export class DeterministicPlannerProvider
 
   readonly name = "deterministic";
 
-  private readonly planner =
-    new DeterministicPlanner();
+  private readonly planner:
+    DeterministicPlanner;
+
+  constructor(
+    executionPolicy?: ExecutionPolicy
+  ) {
+    this.planner =
+      new DeterministicPlanner(
+        executionPolicy
+      );
+  }
 
   async createPlan(
     requirement: RequirementInput
   ): Promise<TestPlan> {
+
     const plan =
       this.planner.createPlan(requirement);
 
