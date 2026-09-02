@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import { Command } from "commander";
 import chalk from "chalk";
 import fs from "node:fs";
@@ -34,8 +35,14 @@ program
     const configPath = path.join(cwd, "dragon-qa.config.yaml");
     const evidencePath = path.join(cwd, ".dragon-qa", "runs");
 
+    const packageRoot = path.resolve(
+      __dirname,
+      "..",
+      ".."
+    );
+
     const exampleConfigPath = path.join(
-      cwd,
+      packageRoot,
       "dragon-qa.config.example.yaml"
     );
 
