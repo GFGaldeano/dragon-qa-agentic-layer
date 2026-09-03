@@ -11,8 +11,13 @@ import {
   ExecutionPolicy
 } from "./execution-policy";
 
+import {
+  buildTrustedExecutionIntent
+} from "./trusted-execution-spec";
+
 const AUTOMATABLE_CAPABILITIES = new Set([
-  "application-availability"
+  "application-availability",
+  "http-status"
 ]);
 
 export class AutonomyExecutionPolicy
@@ -37,7 +42,8 @@ export class AutonomyExecutionPolicy
 
     if (
       !capability ||
-      !AUTOMATABLE_CAPABILITIES.has(capability)
+      !AUTOMATABLE_CAPABILITIES.has(capability) ||
+      !buildTrustedExecutionIntent(scenario)
     ) {
       return "manual-review";
     }

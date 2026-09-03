@@ -20,6 +20,10 @@ import {
 } from "../executors/application-availability-executor";
 
 import {
+  HttpStatusExecutor
+} from "../executors/http-status-executor";
+
+import {
   ScenarioExecutorResolver
 } from "../executors/scenario-executor-resolver";
 
@@ -42,6 +46,11 @@ export class PlaywrightRunner {
       executorResolver ??
       new ScenarioExecutorResolver([
         new ApplicationAvailabilityExecutor(
+          this.config,
+          this.evidenceManager,
+          this.failureAnalyzer
+        ),
+        new HttpStatusExecutor(
           this.config,
           this.evidenceManager,
           this.failureAnalyzer

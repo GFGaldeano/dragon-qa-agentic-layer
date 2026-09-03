@@ -171,6 +171,51 @@ describe(
     );
 
     it(
+      "registers the http status executor by default",
+      async () => {
+        const runner =
+          new PlaywrightRunner(
+            config,
+            new EvidenceManager(),
+            new FailureAnalyzer()
+          );
+
+        const scenario:
+          TestScenario = {
+            id: "SHTTP",
+            title: "HTTP status",
+            description:
+              "Verify HTTP status execution routing.",
+            kind: "smoke",
+            executionMode:
+              "automated",
+            executionIntent: {
+              type: "http-status",
+              expectedStatus: 200
+            },
+            priority: "critical",
+            expectedResult:
+              "The application returns HTTP 200."
+          };
+
+        const result =
+          await runner.execute(
+            scenario,
+            {
+              runDirectory:
+                ".dragon-qa/test-runs",
+              baseUrl:
+                "data:text/html,<html><body>Dragon QA</body></html>"
+            }
+          );
+
+        expect(result.message).not.toBe(
+          "No scenario executor registered for intent: http-status"
+        );
+      }
+    );
+
+    it(
       "fails closed when an automated scenario has no execution intent",
       async () => {
         const runner =

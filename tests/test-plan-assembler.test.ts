@@ -45,6 +45,119 @@ describe("assembleTestPlan", () => {
     });
   });
 
+  it("preserves trusted http status execution intent", () => {
+    const plan = assembleTestPlan(
+      {
+        text:
+          "The application must return HTTP 200"
+      },
+      {
+        scenarios: [
+          {
+            title:
+              "HTTP status",
+            description:
+              "Validate application HTTP status",
+            kind: "smoke",
+            priority: "critical",
+            expectedResult:
+              "Application returns HTTP 200",
+            executionCapability:
+              "http-status",
+            executionSpec: {
+              expectedStatus: 200
+            }
+          }
+        ]
+      },
+      {
+        resolveExecutionMode:
+          () => "automated"
+      }
+    );
+
+    expect(
+      plan.scenarios[0].executionIntent
+    ).toEqual({
+      type: "http-status",
+      expectedStatus: 200
+    });
+  });
+
+  it("does not create http status intent without a trusted execution spec", () => {
+    const plan = assembleTestPlan(
+      {
+        text:
+          "The application must return HTTP 200"
+      },
+      {
+        scenarios: [
+          {
+            title: "HTTP status",
+            description:
+              "Validate application HTTP status",
+            kind: "smoke",
+            priority: "critical",
+            expectedResult:
+              "Application returns HTTP 200",
+            executionCapability:
+              "http-status"
+          }
+        ]
+      },
+      {
+        resolveExecutionMode:
+          () => "manual-review"
+      }
+    );
+
+    expect(
+      plan.scenarios[0].executionIntent
+    ).toBeUndefined();
+  });
+
+  it.each([
+    99,
+    600,
+    200.5
+  ])(
+    "does not create http status intent for invalid expected status %s",
+    (expectedStatus) => {
+      const plan = assembleTestPlan(
+        {
+          text:
+            "The application must return a valid HTTP status"
+        },
+        {
+          scenarios: [
+            {
+              title: "HTTP status",
+              description:
+                "Validate application HTTP status",
+              kind: "smoke",
+              priority: "critical",
+              expectedResult:
+                "Application returns expected status",
+              executionCapability:
+                "http-status",
+              executionSpec: {
+                expectedStatus
+              }
+            }
+          ]
+        },
+        {
+          resolveExecutionMode:
+            () => "manual-review"
+        }
+      );
+
+      expect(
+        plan.scenarios[0].executionIntent
+      ).toBeUndefined();
+    }
+  );
+
   it("does not create execution intent for untrusted scenarios", () => {
     const plan = assembleTestPlan(
       {

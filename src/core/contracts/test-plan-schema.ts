@@ -24,6 +24,14 @@ export const TestScenarioSchema = z.object({
   executionIntent: z.discriminatedUnion("type", [
     z.object({
       type: z.literal("application-availability")
+    }).strict(),
+    z.object({
+      type: z.literal("http-status"),
+      expectedStatus:
+        z.number()
+          .int()
+          .min(100)
+          .max(599)
     }).strict()
   ]).optional(),
   priority: z.enum(["critical", "high", "medium", "low"]),

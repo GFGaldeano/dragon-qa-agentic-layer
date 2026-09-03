@@ -62,6 +62,41 @@ describe("TestPlanSchema", () => {
     });
   });
 
+  it("accepts an http status execution intent", () => {
+    const parsed = TestPlanSchema.parse({
+      id: "plan-1",
+      requirement: {
+        text: "Application returns HTTP 200",
+        source: "cli"
+      },
+      createdAt: new Date().toISOString(),
+      scenarios: [
+        {
+          id: "S001",
+          title: "HTTP status",
+          description:
+            "Verify the application HTTP status.",
+          kind: "smoke",
+          executionMode: "automated",
+          executionIntent: {
+            type: "http-status",
+            expectedStatus: 200
+          },
+          priority: "critical",
+          expectedResult:
+            "Application returns HTTP 200."
+        }
+      ]
+    });
+
+    expect(
+      parsed.scenarios[0].executionIntent
+    ).toEqual({
+      type: "http-status",
+      expectedStatus: 200
+    });
+  });
+
   it("rejects an unsupported execution intent", () => {
     expect(() =>
       TestPlanSchema.parse({

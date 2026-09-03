@@ -3,7 +3,13 @@ import {
 } from "./types";
 
 export type ExecutionCapability =
-  | "application-availability";
+  | "application-availability"
+  | "http-status";
+
+export type ExecutionSpec =
+  | {
+      expectedStatus: number;
+    };
 
 export interface PlanningScenarioProposal {
   title: string;
@@ -23,6 +29,14 @@ export interface PlanningScenarioProposal {
    * It is intentionally not part of the LLM model output contract.
    */
   executionCapability?: ExecutionCapability;
+
+  /**
+   * Internal trusted execution parameters.
+   *
+   * This field is assigned only by trusted code paths.
+   * It is intentionally not part of the LLM model output contract.
+   */
+  executionSpec?: ExecutionSpec;
 }
 
 export interface PlanningProposal {
