@@ -20,6 +20,10 @@ export type ExecutionMode =
 export type ExecutionIntent =
   | {
       type: "application-availability";
+    }
+  | {
+      type: "http-status";
+      expectedStatus: number;
     };
 
 export type ResultStatus =

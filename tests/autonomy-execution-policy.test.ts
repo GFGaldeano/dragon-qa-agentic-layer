@@ -20,6 +20,21 @@ const availabilityScenario = {
     "application-availability" as const
 };
 
+const httpStatusScenario = {
+  title: "HTTP status",
+  description:
+    "Verify that the target application returns HTTP 200.",
+  kind: "smoke" as const,
+  priority: "critical" as const,
+  expectedResult:
+    "Application returns HTTP 200.",
+  executionCapability:
+    "http-status" as const,
+  executionSpec: {
+    expectedStatus: 200
+  }
+};
+
 const untrustedScenario = {
   title: "Generated smoke scenario",
   description:
@@ -67,6 +82,70 @@ describe(
             availabilityScenario
           )
         ).toBe("automated");
+      }
+    );
+
+    it.each([
+      "assist",
+      "execute",
+      "autonomous"
+    ] as const)(
+      "automates trusted http status capability in %s mode",
+      (level) => {
+        const policy =
+          new AutonomyExecutionPolicy(
+            level
+          );
+
+        expect(
+          policy.resolveExecutionMode(
+            httpStatusScenario
+          )
+        ).toBe("automated");
+      }
+    );
+
+    it.each([
+      "assist",
+      "execute",
+      "autonomous"
+    ] as const)(
+      "keeps http status capability manual when execution spec is missing in %s mode",
+      (level) => {
+        const policy =
+          new AutonomyExecutionPolicy(
+            level
+          );
+
+        expect(
+          policy.resolveExecutionMode({
+            ...httpStatusScenario,
+            executionSpec: undefined
+          })
+        ).toBe("manual-review");
+      }
+    );
+
+    it.each([
+      99,
+      600,
+      200.5
+    ])(
+      "keeps http status capability manual for invalid expected status %s",
+      (expectedStatus) => {
+        const policy =
+          new AutonomyExecutionPolicy(
+            "assist"
+          );
+
+        expect(
+          policy.resolveExecutionMode({
+            ...httpStatusScenario,
+            executionSpec: {
+              expectedStatus
+            }
+          })
+        ).toBe("manual-review");
       }
     );
 

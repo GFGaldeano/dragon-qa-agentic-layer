@@ -22,6 +22,10 @@ import {
   SafeDefaultExecutionPolicy
 } from "./safe-default-execution-policy";
 
+import {
+  buildTrustedExecutionIntent
+} from "./trusted-execution-spec";
+
 export function assembleTestPlan(
   requirement: RequirementInput,
   proposal: PlanningProposal,
@@ -40,13 +44,9 @@ export function assembleTestPlan(
             scenario
           ),
         executionIntent:
-          scenario.executionCapability ===
-          "application-availability"
-            ? {
-                type:
-                  "application-availability"
-              }
-            : undefined,
+          buildTrustedExecutionIntent(
+            scenario
+          ),
         priority: scenario.priority,
         expectedResult: scenario.expectedResult
       })
