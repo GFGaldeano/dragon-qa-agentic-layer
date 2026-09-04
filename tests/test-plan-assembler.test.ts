@@ -276,6 +276,124 @@ describe("assembleTestPlan", () => {
     }
   );
 
+  it("preserves trusted page text execution intent", () => {
+    const plan = assembleTestPlan(
+      {
+        text:
+          "The application page must contain Dragon QA"
+      },
+      {
+        scenarios: [
+          {
+            title: "Page text",
+            description:
+              "Validate application page text",
+            kind: "smoke",
+            priority: "high",
+            expectedResult:
+              "Application page contains Dragon QA",
+            executionCapability:
+              "page-text",
+            executionSpec: {
+              expectedText: "Dragon QA"
+            }
+          }
+        ]
+      },
+      {
+        resolveExecutionMode:
+          () => "automated"
+      }
+    );
+
+    expect(
+      plan.scenarios[0].executionIntent
+    ).toEqual({
+      type: "page-text",
+      expectedText: "Dragon QA"
+    });
+  });
+
+  it("normalizes trusted page text execution intent", () => {
+    const plan = assembleTestPlan(
+      {
+        text:
+          "The application page must contain Dragon QA"
+      },
+      {
+        scenarios: [
+          {
+            title: "Page text",
+            description:
+              "Validate application page text",
+            kind: "smoke",
+            priority: "high",
+            expectedResult:
+              "Application page contains Dragon QA",
+            executionCapability:
+              "page-text",
+            executionSpec: {
+              expectedText:
+                "  Dragon QA  "
+            }
+          }
+        ]
+      },
+      {
+        resolveExecutionMode:
+          () => "automated"
+      }
+    );
+
+    expect(
+      plan.scenarios[0].executionIntent
+    ).toEqual({
+      type: "page-text",
+      expectedText: "Dragon QA"
+    });
+  });
+
+  it.each([
+    "",
+    "   "
+  ])(
+    "does not create page text intent for invalid expected text %j",
+    (expectedText) => {
+      const plan = assembleTestPlan(
+        {
+          text:
+            "The application page must contain valid text"
+        },
+        {
+          scenarios: [
+            {
+              title: "Page text",
+              description:
+                "Validate application page text",
+              kind: "smoke",
+              priority: "high",
+              expectedResult:
+                "Application page contains expected text",
+              executionCapability:
+                "page-text",
+              executionSpec: {
+                expectedText
+              }
+            }
+          ]
+        },
+        {
+          resolveExecutionMode:
+            () => "manual-review"
+        }
+      );
+
+      expect(
+        plan.scenarios[0].executionIntent
+      ).toBeUndefined();
+    }
+  );
+
   it("does not create execution intent for untrusted scenarios", () => {
     const plan = assembleTestPlan(
       {

@@ -174,6 +174,83 @@ describe("TestPlanSchema", () => {
     }
   );
 
+  it("accepts a page text execution intent", () => {
+    const parsed = TestPlanSchema.parse({
+      id: "plan-page-text",
+      requirement: {
+        text:
+          "Application page contains Dragon QA",
+        source: "cli"
+      },
+      createdAt:
+        new Date().toISOString(),
+      scenarios: [
+        {
+          id: "S001",
+          title: "Page text",
+          description:
+            "Verify the application page text.",
+          kind: "smoke",
+          executionMode: "automated",
+          executionIntent: {
+            type: "page-text",
+            expectedText:
+              "Dragon QA"
+          },
+          priority: "high",
+          expectedResult:
+            "Application page contains Dragon QA."
+        }
+      ]
+    });
+
+    expect(
+      parsed.scenarios[0].executionIntent
+    ).toEqual({
+      type: "page-text",
+      expectedText: "Dragon QA"
+    });
+  });
+
+  it.each([
+    "",
+    "   "
+  ])(
+    "rejects page text execution intent with invalid expected text %j",
+    (expectedText) => {
+      expect(() =>
+        TestPlanSchema.parse({
+          id: "plan-page-text-invalid",
+          requirement: {
+            text:
+              "Application page must contain text",
+            source: "cli"
+          },
+          createdAt:
+            new Date().toISOString(),
+          scenarios: [
+            {
+              id: "S001",
+              title: "Page text",
+              description:
+                "Verify the application page text.",
+              kind: "smoke",
+              executionMode:
+                "automated",
+              executionIntent: {
+                type: "page-text",
+                expectedText
+              },
+              priority: "high",
+              expectedResult:
+                "Application page contains expected text."
+            }
+          ]
+        })
+      ).toThrow();
+    }
+  );
+
   it("rejects an unsupported execution intent", () => {
     expect(() =>
       TestPlanSchema.parse({

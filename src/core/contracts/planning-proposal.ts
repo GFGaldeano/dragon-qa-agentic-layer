@@ -5,7 +5,8 @@ import {
 export type ExecutionCapability =
   | "application-availability"
   | "http-status"
-  | "page-title";
+  | "page-title"
+  | "page-text";
 
 export type ExecutionSpec =
   | {
@@ -13,6 +14,9 @@ export type ExecutionSpec =
     }
   | {
       expectedTitle: string;
+    }
+  | {
+      expectedText: string;
     };
 
 export interface PlanningScenarioProposal {

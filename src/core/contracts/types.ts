@@ -28,6 +28,10 @@ export type ExecutionIntent =
   | {
       type: "page-title";
       expectedTitle: string;
+    }
+  | {
+      type: "page-text";
+      expectedText: string;
     };
 
 export type ResultStatus =

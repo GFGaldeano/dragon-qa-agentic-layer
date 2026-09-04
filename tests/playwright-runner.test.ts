@@ -261,6 +261,51 @@ describe(
     );
 
     it(
+      "registers the page text executor by default",
+      async () => {
+        const runner =
+          new PlaywrightRunner(
+            config,
+            new EvidenceManager(),
+            new FailureAnalyzer()
+          );
+
+        const scenario:
+          TestScenario = {
+            id: "STEXT",
+            title: "Page text",
+            description:
+              "Verify page text execution routing.",
+            kind: "smoke",
+            executionMode:
+              "automated",
+            executionIntent: {
+              type: "page-text",
+              expectedText: "Dragon QA"
+            },
+            priority: "high",
+            expectedResult:
+              "The application page contains Dragon QA."
+          };
+
+        const result =
+          await runner.execute(
+            scenario,
+            {
+              runDirectory:
+                ".dragon-qa/test-runs",
+              baseUrl:
+                "data:text/html,<html><body>Welcome to Dragon QA</body></html>"
+            }
+          );
+
+        expect(result.message).not.toBe(
+          "No scenario executor registered for intent: page-text"
+        );
+      }
+    );
+
+    it(
       "fails closed when an automated scenario has no execution intent",
       async () => {
         const runner =
