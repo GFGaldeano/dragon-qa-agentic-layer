@@ -68,6 +68,30 @@ export function buildTrustedExecutionIntent(
       };
     }
 
+    case "page-text": {
+      const executionSpec =
+        scenario.executionSpec;
+
+      if (
+        !executionSpec ||
+        !("expectedText" in executionSpec)
+      ) {
+        return undefined;
+      }
+
+      const expectedText =
+        executionSpec.expectedText.trim();
+
+      if (expectedText.length === 0) {
+        return undefined;
+      }
+
+      return {
+        type: "page-text",
+        expectedText
+      };
+    }
+
     default:
       return undefined;
   }

@@ -39,6 +39,13 @@ export const TestScenarioSchema = z.object({
         z.string()
           .trim()
           .min(1)
+    }).strict(),
+    z.object({
+      type: z.literal("page-text"),
+      expectedText:
+        z.string()
+          .trim()
+          .min(1)
     }).strict()
   ]).optional(),
   priority: z.enum(["critical", "high", "medium", "low"]),

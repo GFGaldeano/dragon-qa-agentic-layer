@@ -50,6 +50,21 @@ const pageTitleScenario = {
   }
 };
 
+const pageTextScenario = {
+  title: "Page text",
+  description:
+    "Verify that the application page contains the expected text.",
+  kind: "smoke" as const,
+  priority: "high" as const,
+  expectedResult:
+    "Application page contains the expected text.",
+  executionCapability:
+    "page-text" as const,
+  executionSpec: {
+    expectedText: "Dragon QA"
+  }
+};
+
 const untrustedScenario = {
   title: "Generated smoke scenario",
   description:
@@ -221,6 +236,69 @@ describe(
             ...pageTitleScenario,
             executionSpec: {
               expectedTitle
+            }
+          })
+        ).toBe("manual-review");
+      }
+    );
+
+    it.each([
+      "assist",
+      "execute",
+      "autonomous"
+    ] as const)(
+      "automates trusted page text capability in %s mode",
+      (level) => {
+        const policy =
+          new AutonomyExecutionPolicy(
+            level
+          );
+
+        expect(
+          policy.resolveExecutionMode(
+            pageTextScenario
+          )
+        ).toBe("automated");
+      }
+    );
+
+    it.each([
+      "assist",
+      "execute",
+      "autonomous"
+    ] as const)(
+      "keeps page text capability manual when execution spec is missing in %s mode",
+      (level) => {
+        const policy =
+          new AutonomyExecutionPolicy(
+            level
+          );
+
+        expect(
+          policy.resolveExecutionMode({
+            ...pageTextScenario,
+            executionSpec: undefined
+          })
+        ).toBe("manual-review");
+      }
+    );
+
+    it.each([
+      "",
+      "   "
+    ])(
+      "keeps page text capability manual for invalid expected text %j",
+      (expectedText) => {
+        const policy =
+          new AutonomyExecutionPolicy(
+            "assist"
+          );
+
+        expect(
+          policy.resolveExecutionMode({
+            ...pageTextScenario,
+            executionSpec: {
+              expectedText
             }
           })
         ).toBe("manual-review");

@@ -28,6 +28,10 @@ import {
 } from "../executors/page-title-executor";
 
 import {
+  PageTextExecutor
+} from "../executors/page-text-executor";
+
+import {
   ScenarioExecutorResolver
 } from "../executors/scenario-executor-resolver";
 
@@ -60,6 +64,11 @@ export class PlaywrightRunner {
           this.failureAnalyzer
         ),
         new PageTitleExecutor(
+          this.config,
+          this.evidenceManager,
+          this.failureAnalyzer
+        ),
+        new PageTextExecutor(
           this.config,
           this.evidenceManager,
           this.failureAnalyzer
