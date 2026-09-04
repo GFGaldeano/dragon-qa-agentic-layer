@@ -24,6 +24,10 @@ export type ExecutionIntent =
   | {
       type: "http-status";
       expectedStatus: number;
+    }
+  | {
+      type: "page-title";
+      expectedTitle: string;
     };
 
 export type ResultStatus =

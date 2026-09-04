@@ -16,8 +16,18 @@ export function buildTrustedExecutionIntent(
       };
 
     case "http-status": {
+      const executionSpec =
+        scenario.executionSpec;
+
+      if (
+        !executionSpec ||
+        !("expectedStatus" in executionSpec)
+      ) {
+        return undefined;
+      }
+
       const expectedStatus =
-        scenario.executionSpec?.expectedStatus;
+        executionSpec.expectedStatus;
 
       if (
         typeof expectedStatus !== "number" ||
@@ -31,6 +41,30 @@ export function buildTrustedExecutionIntent(
       return {
         type: "http-status",
         expectedStatus
+      };
+    }
+
+    case "page-title": {
+      const executionSpec =
+        scenario.executionSpec;
+
+      if (
+        !executionSpec ||
+        !("expectedTitle" in executionSpec)
+      ) {
+        return undefined;
+      }
+
+      const expectedTitle =
+        executionSpec.expectedTitle.trim();
+
+      if (expectedTitle.length === 0) {
+        return undefined;
+      }
+
+      return {
+        type: "page-title",
+        expectedTitle
       };
     }
 
