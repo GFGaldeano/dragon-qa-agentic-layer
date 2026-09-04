@@ -158,6 +158,124 @@ describe("assembleTestPlan", () => {
     }
   );
 
+  it("preserves trusted page title execution intent", () => {
+    const plan = assembleTestPlan(
+      {
+        text:
+          "The application page title must be Dragon QA"
+      },
+      {
+        scenarios: [
+          {
+            title: "Page title",
+            description:
+              "Validate application page title",
+            kind: "smoke",
+            priority: "high",
+            expectedResult:
+              "Application page title is Dragon QA",
+            executionCapability:
+              "page-title",
+            executionSpec: {
+              expectedTitle: "Dragon QA"
+            }
+          }
+        ]
+      },
+      {
+        resolveExecutionMode:
+          () => "automated"
+      }
+    );
+
+    expect(
+      plan.scenarios[0].executionIntent
+    ).toEqual({
+      type: "page-title",
+      expectedTitle: "Dragon QA"
+    });
+  });
+
+  it("normalizes trusted page title execution intent", () => {
+    const plan = assembleTestPlan(
+      {
+        text:
+          "The application page title must be Dragon QA"
+      },
+      {
+        scenarios: [
+          {
+            title: "Page title",
+            description:
+              "Validate application page title",
+            kind: "smoke",
+            priority: "high",
+            expectedResult:
+              "Application page title is Dragon QA",
+            executionCapability:
+              "page-title",
+            executionSpec: {
+              expectedTitle:
+                "  Dragon QA  "
+            }
+          }
+        ]
+      },
+      {
+        resolveExecutionMode:
+          () => "automated"
+      }
+    );
+
+    expect(
+      plan.scenarios[0].executionIntent
+    ).toEqual({
+      type: "page-title",
+      expectedTitle: "Dragon QA"
+    });
+  });
+
+  it.each([
+    "",
+    "   "
+  ])(
+    "does not create page title intent for invalid expected title %j",
+    (expectedTitle) => {
+      const plan = assembleTestPlan(
+        {
+          text:
+            "The application must have a valid page title"
+        },
+        {
+          scenarios: [
+            {
+              title: "Page title",
+              description:
+                "Validate application page title",
+              kind: "smoke",
+              priority: "high",
+              expectedResult:
+                "Application has expected title",
+              executionCapability:
+                "page-title",
+              executionSpec: {
+                expectedTitle
+              }
+            }
+          ]
+        },
+        {
+          resolveExecutionMode:
+            () => "manual-review"
+        }
+      );
+
+      expect(
+        plan.scenarios[0].executionIntent
+      ).toBeUndefined();
+    }
+  );
+
   it("does not create execution intent for untrusted scenarios", () => {
     const plan = assembleTestPlan(
       {

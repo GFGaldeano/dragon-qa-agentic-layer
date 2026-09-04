@@ -4,11 +4,15 @@ import {
 
 export type ExecutionCapability =
   | "application-availability"
-  | "http-status";
+  | "http-status"
+  | "page-title";
 
 export type ExecutionSpec =
   | {
       expectedStatus: number;
+    }
+  | {
+      expectedTitle: string;
     };
 
 export interface PlanningScenarioProposal {

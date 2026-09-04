@@ -17,7 +17,8 @@ import {
 
 const AUTOMATABLE_CAPABILITIES = new Set([
   "application-availability",
-  "http-status"
+  "http-status",
+  "page-title"
 ]);
 
 export class AutonomyExecutionPolicy

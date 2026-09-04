@@ -216,6 +216,51 @@ describe(
     );
 
     it(
+      "registers the page title executor by default",
+      async () => {
+        const runner =
+          new PlaywrightRunner(
+            config,
+            new EvidenceManager(),
+            new FailureAnalyzer()
+          );
+
+        const scenario:
+          TestScenario = {
+            id: "STITLE",
+            title: "Page title",
+            description:
+              "Verify page title execution routing.",
+            kind: "smoke",
+            executionMode:
+              "automated",
+            executionIntent: {
+              type: "page-title",
+              expectedTitle: "Dragon QA"
+            },
+            priority: "high",
+            expectedResult:
+              "The application page title is Dragon QA."
+          };
+
+        const result =
+          await runner.execute(
+            scenario,
+            {
+              runDirectory:
+                ".dragon-qa/test-runs",
+              baseUrl:
+                "data:text/html,<html><head><title>Dragon QA</title></head><body></body></html>"
+            }
+          );
+
+        expect(result.message).not.toBe(
+          "No scenario executor registered for intent: page-title"
+        );
+      }
+    );
+
+    it(
       "fails closed when an automated scenario has no execution intent",
       async () => {
         const runner =

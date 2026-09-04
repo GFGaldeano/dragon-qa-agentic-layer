@@ -97,6 +97,83 @@ describe("TestPlanSchema", () => {
     });
   });
 
+  it("accepts a page title execution intent", () => {
+    const parsed = TestPlanSchema.parse({
+      id: "plan-page-title",
+      requirement: {
+        text:
+          "Application page title is Dragon QA",
+        source: "cli"
+      },
+      createdAt:
+        new Date().toISOString(),
+      scenarios: [
+        {
+          id: "S001",
+          title: "Page title",
+          description:
+            "Verify the application page title.",
+          kind: "smoke",
+          executionMode: "automated",
+          executionIntent: {
+            type: "page-title",
+            expectedTitle:
+              "Dragon QA"
+          },
+          priority: "high",
+          expectedResult:
+            "Application page title is Dragon QA."
+        }
+      ]
+    });
+
+    expect(
+      parsed.scenarios[0].executionIntent
+    ).toEqual({
+      type: "page-title",
+      expectedTitle: "Dragon QA"
+    });
+  });
+
+  it.each([
+    "",
+    "   "
+  ])(
+    "rejects page title execution intent with invalid expected title %j",
+    (expectedTitle) => {
+      expect(() =>
+        TestPlanSchema.parse({
+          id: "plan-page-title-invalid",
+          requirement: {
+            text:
+              "Application must have a page title",
+            source: "cli"
+          },
+          createdAt:
+            new Date().toISOString(),
+          scenarios: [
+            {
+              id: "S001",
+              title: "Page title",
+              description:
+                "Verify the application page title.",
+              kind: "smoke",
+              executionMode:
+                "automated",
+              executionIntent: {
+                type: "page-title",
+                expectedTitle
+              },
+              priority: "high",
+              expectedResult:
+                "Application has a page title."
+            }
+          ]
+        })
+      ).toThrow();
+    }
+  );
+
   it("rejects an unsupported execution intent", () => {
     expect(() =>
       TestPlanSchema.parse({
