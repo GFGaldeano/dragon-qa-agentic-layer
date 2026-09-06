@@ -186,4 +186,163 @@ describe("DragonConfigSchema", () => {
       })
     ).toThrow();
   });
+
+  it(
+    "keeps retry configuration absent for backward compatible configs",
+    () => {
+      const parsed =
+        DragonConfigSchema.parse(
+          baseConfig
+        );
+
+      expect(
+        parsed.retry
+      ).toBeUndefined();
+    }
+  );
+
+  it(
+    "accepts bounded safe retry policy configuration",
+    () => {
+      const parsed =
+        DragonConfigSchema.parse({
+          ...baseConfig,
+
+          retry: {
+            enabled: true,
+            maxRetries: 2,
+            retryableFailureTypes: [
+              "network",
+              "timeout"
+            ]
+          }
+        });
+
+      expect(parsed.retry).toEqual({
+        enabled: true,
+        maxRetries: 2,
+        retryableFailureTypes: [
+          "network",
+          "timeout"
+        ]
+      });
+    }
+  );
+
+  it(
+    "applies safe defaults when retry configuration is present",
+    () => {
+      const parsed =
+        DragonConfigSchema.parse({
+          ...baseConfig,
+          retry: {}
+        });
+
+      expect(parsed.retry).toEqual({
+        enabled: false,
+        maxRetries: 1,
+        retryableFailureTypes: [
+          "network",
+          "timeout"
+        ]
+      });
+    }
+  );
+
+  it(
+    "rejects retry counts above the safety limit",
+    () => {
+      expect(() =>
+        DragonConfigSchema.parse({
+          ...baseConfig,
+
+          retry: {
+            enabled: true,
+            maxRetries: 4,
+            retryableFailureTypes: [
+              "network"
+            ]
+          }
+        })
+      ).toThrow();
+    }
+  );
+
+  it(
+    "rejects failure types that are not retry-safe",
+    () => {
+      expect(() =>
+        DragonConfigSchema.parse({
+          ...baseConfig,
+
+          retry: {
+            enabled: true,
+            maxRetries: 1,
+            retryableFailureTypes: [
+              "assertion"
+            ]
+          }
+        })
+      ).toThrow();
+    }
+  );
+
+  it(
+    "rejects negative retry counts",
+    () => {
+      expect(() =>
+        DragonConfigSchema.parse({
+          ...baseConfig,
+
+          retry: {
+            enabled: true,
+            maxRetries: -1,
+            retryableFailureTypes: [
+              "network"
+            ]
+          }
+        })
+      ).toThrow();
+    }
+  );
+
+  it(
+    "rejects fractional retry counts",
+    () => {
+      expect(() =>
+        DragonConfigSchema.parse({
+          ...baseConfig,
+
+          retry: {
+            enabled: true,
+            maxRetries: 1.5,
+            retryableFailureTypes: [
+              "timeout"
+            ]
+          }
+        })
+      ).toThrow();
+    }
+  );
+
+  it(
+    "rejects unknown retry configuration fields",
+    () => {
+      expect(() =>
+        DragonConfigSchema.parse({
+          ...baseConfig,
+
+          retry: {
+            enabled: true,
+            maxRetries: 1,
+            retryableFailureTypes: [
+              "network"
+            ],
+            retryAssertions: true
+          }
+        })
+      ).toThrow();
+    }
+  );
+
 });
