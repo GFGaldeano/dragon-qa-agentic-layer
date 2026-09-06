@@ -1,5 +1,9 @@
 import { z } from "zod";
 
+import {
+  RetryPolicyConfigSchema
+} from "./retry-policy-schema";
+
 const PlannerModelConfigSchema = z.object({
   type: z
     .enum(["openai-compatible"]),
@@ -36,6 +40,9 @@ export const DragonConfigSchema = z.object({
       ])
       .default("assist")
   }),
+
+  retry:
+    RetryPolicyConfigSchema.optional(),
 
   testing: z.object({
     ui: z.boolean().default(true),
