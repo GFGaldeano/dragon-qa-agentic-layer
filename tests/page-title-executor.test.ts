@@ -232,6 +232,11 @@ describe(
         expect(result.message).toContain(
           'received "Different title"'
         );
+
+        expect(result).toHaveProperty(
+          "failure.type",
+          "assertion"
+        );
       }
     );
 
@@ -284,6 +289,11 @@ describe(
         expect(
           result.message.length
         ).toBeGreaterThan(0);
+
+        expect(result).toHaveProperty(
+          "failure.type",
+          "network"
+        );
       }
     );
   }

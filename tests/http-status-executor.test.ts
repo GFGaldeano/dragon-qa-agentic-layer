@@ -230,6 +230,16 @@ describe(
         expect(result.message).toContain(
           "received HTTP 503"
         );
+
+        expect(result).toHaveProperty(
+          "failure.type",
+          "http"
+        );
+
+        expect(result).toHaveProperty(
+          "failure.statusCode",
+          503
+        );
       }
     );
 
@@ -282,6 +292,11 @@ describe(
         expect(
           result.message.length
         ).toBeGreaterThan(0);
+
+        expect(result).toHaveProperty(
+          "failure.type",
+          "network"
+        );
       }
     );
   }

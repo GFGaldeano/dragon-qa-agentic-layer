@@ -21,6 +21,13 @@ function snapshotAttempt(
       record.attemptNumber,
     result: {
       ...record.result,
+      ...(record.result.failure === undefined
+        ? {}
+        : {
+            failure: {
+              ...record.result.failure
+            }
+          }),
       evidence:
         record.result.evidence.map(
           evidence => ({

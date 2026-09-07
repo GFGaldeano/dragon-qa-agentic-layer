@@ -171,11 +171,14 @@ export class ApplicationAvailabilityExecutor
         evidence
       };
     } catch (error) {
+      const failure =
+        extractFailureSignal(
+          error
+        );
+
       const verdict =
         this.failureAnalyzer.classify(
-          extractFailureSignal(
-            error
-          )
+          failure
         );
 
       return {
@@ -190,7 +193,8 @@ export class ApplicationAvailabilityExecutor
           error instanceof Error
             ? error.message
             : String(error),
-        evidence: []
+        evidence: [],
+        failure
       };
     } finally {
       if (browserContext) {

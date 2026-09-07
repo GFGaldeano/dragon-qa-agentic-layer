@@ -198,7 +198,12 @@ export class PageTextExecutor
             Date.now() - started,
           message:
             `Expected page text to contain "${intent.expectedText}".`,
-          evidence
+          evidence,
+          failure: {
+            type: "assertion",
+            message:
+              `Expected page text to contain "${intent.expectedText}".`
+          }
         };
       }
 
@@ -215,9 +220,12 @@ export class PageTextExecutor
         evidence
       };
     } catch (error) {
+      const failure =
+        extractFailureSignal(error);
+
       const verdict =
         this.failureAnalyzer.classify(
-          extractFailureSignal(error)
+          failure
         );
 
       return {
@@ -232,7 +240,8 @@ export class PageTextExecutor
           error instanceof Error
             ? error.message
             : String(error),
-        evidence: []
+        evidence: [],
+        failure
       };
     } finally {
       if (browserContext) {

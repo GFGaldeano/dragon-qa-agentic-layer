@@ -1,3 +1,17 @@
+import path from "node:path";
+
+import {
+  RetryPolicyConfigSchema
+} from "../../core/config/retry-policy-schema";
+
+import {
+  RetryDecisionEngine
+} from "../../core/retry/retry-decision-engine";
+
+import {
+  RetryAttemptHistory
+} from "../../core/retry/retry-attempt-history";
+
 import {
   DragonConfig
 } from "../../core/config/schema";
@@ -162,6 +176,127 @@ export class PlaywrightRunner {
           `Unexpected scenario executor failure: ${message}`,
         evidence: []
       };
+    }
+  }
+
+  async executeWithHistory(
+    scenario: TestScenario,
+    context: PlaywrightRunContext
+  ): Promise<{
+    result: TestExecutionResult;
+    history: RetryAttemptHistory;
+  }> {
+    const parsedPolicy =
+      RetryPolicyConfigSchema.safeParse(
+        this.config.retry
+      );
+
+    const policy =
+      parsedPolicy.success
+        ? parsedPolicy.data
+        : undefined;
+
+    const retryEngine =
+      new RetryDecisionEngine(policy);
+
+    // Preserve the trusted operation independently
+    // of any mutations performed by an executor.
+    const snapshotScenario = (
+      value: TestScenario
+    ): TestScenario => ({
+      ...value,
+      ...(value.executionIntent === undefined
+        ? {}
+        : {
+            executionIntent: {
+              ...value.executionIntent
+            }
+          })
+    });
+
+    const trustedScenario =
+      snapshotScenario(scenario);
+
+    const trustedContext:
+      PlaywrightRunContext = {
+        ...context
+      };
+
+    const history =
+      new RetryAttemptHistory(
+        trustedScenario.id
+      );
+
+    while (true) {
+      // Number of retries consumed by the attempt
+      // that is about to execute.
+      const retriesUsed =
+        history.attempts.length;
+
+      const attemptNumber =
+        retriesUsed + 1;
+
+      const attemptContext:
+        PlaywrightRunContext = {
+          ...trustedContext,
+          runDirectory:
+            policy?.enabled
+              ? path.join(
+                  trustedContext.runDirectory,
+                  "attempts",
+                  `attempt-${attemptNumber}`
+                )
+              : trustedContext.runDirectory
+        };
+
+      const result =
+        await this.execute(
+          snapshotScenario(trustedScenario),
+          {
+            ...attemptContext
+          }
+        );
+
+      // Only confirmed failures with reviewable
+      // technical verdicts may enter retry policy.
+      if (
+        result.status !== "failed" ||
+        (
+          result.verdict !== "REVIEW" &&
+          result.verdict !== "ENVIRONMENT"
+        )
+      ) {
+        history.recordAttempt(result);
+
+        return {
+          result,
+          history
+        };
+      }
+
+      const failureType =
+        typeof result.failure?.type ===
+        "string"
+          ? result.failure.type
+          : "unknown";
+
+      const decision =
+        retryEngine.decide({
+          failureType,
+          retriesUsed
+        });
+
+      history.recordAttempt(
+        result,
+        decision
+      );
+
+      if (!decision.shouldRetry) {
+        return {
+          result,
+          history
+        };
+      }
     }
   }
 }

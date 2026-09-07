@@ -1,3 +1,7 @@
+import type {
+  FailureSignal
+} from "./failure-signal";
+
 export type AutonomyLevel =
   | "observe"
   | "assist"
@@ -86,6 +90,7 @@ export interface TestExecutionResult {
   durationMs: number;
   message: string;
   evidence: EvidenceReference[];
+  failure?: FailureSignal;
 }
 
 export interface DragonRunResult {
