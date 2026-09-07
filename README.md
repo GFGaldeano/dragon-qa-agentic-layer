@@ -30,6 +30,7 @@
 - [Configuration reference](#configuration)
 - [Adapt DRAGON QA to any project](#project-adaptation)
 - [Optional LLM planning](#providers)
+- [Claude Code integration](#claude-code)
 - [Autonomy, execution policy, and governance](#autonomy)
 - [Supported trusted checks](#trusted-checks)
 - [Bounded retries and FLAKY classification](#retries)
@@ -70,6 +71,7 @@ The following table distinguishes the implemented behavior from planned work. A 
 | Failure intelligence | Structured failure signals, deterministic classification, technical verdict aggregation, and a separate human-approval flag. |
 | Retries | Opt-in bounded retries for network/timeout failures, per-attempt history, isolated evidence paths, conservative FLAKY classification. |
 | Project configuration | YAML configuration, CLI URL override, deterministic/LLM planner selection, and a public TypeScript/JavaScript entrypoint. |
+| Claude Code operation | External CLI workflow validated locally with Playwright and report inspection; no native Anthropic adapter is implied. |
 | Not yet implemented | General browser-action agents, self-healing selectors, application-specific business-flow automation, full API/contract/accessibility/visual testing, a dashboard, and ready-to-use Jira/GitHub/MCP integrations. |
 
 The configuration schema already contains flags for API, accessibility, and visual testing. Those flags do **not** mean the corresponding general-purpose runners exist. Likewise, a model may propose those scenario kinds, but unsupported scenarios remain for manual review. The repository's adapter and API-runner directories explicitly describe future work.
@@ -323,6 +325,19 @@ The model must return valid JSON matching the strict planning schema. The implem
 
 **Compatibility is not universal provider support.** A compatible endpoint and its model must be tested. Native Anthropic/Claude adapters, MCP planning integration, and additional providers remain future work. The `.env.example` file lists possible integration credentials, but it is not automatically loaded by the current CLI and does not prove those integrations are implemented.
 
+<a id="claude-code"></a>
+## Claude Code integration
+
+DRAGON QA can be operated from Claude Code as an external CLI tool. Claude Code can invoke the application, inspect its JSON/Markdown reports, and assist QA in interpreting the results. This does not require Claude Code to be configured as DRAGON's internal LLM planning provider.
+
+A local integration smoke was completed with Claude Code 2.1.72, Node.js 24.15.0, DRAGON QA 0.1.0-alpha, and Playwright Chromium. The test used a temporary HTTP application, deterministic planning, `assist` autonomy, and disabled retries.
+
+The run generated four scenarios: S001 executed and passed; S002–S004 remained in manual review. The final verdict was `REVIEW`, with `humanApprovalRequired: true`. Screenshot, trace, JSON, and Markdown evidence were verified.
+
+This validates the basic workflow **Claude Code → DRAGON QA CLI → Playwright → reports → QA review**. It does not establish native Anthropic API integration, unrestricted browser autonomy, or readiness for every enterprise environment.
+
+The existing OpenAI-compatible planning client remains available separately. It requires a compatible chat-completions endpoint and a model that satisfies DRAGON's strict planning contract. Compatibility with a particular provider/model must be verified; the Claude Code smoke did not test the official OpenAI API.
+
 <a id="autonomy"></a>
 ## Autonomy, execution policy, and governance
 
@@ -536,7 +551,7 @@ git diff --check
 
 The latest user-verified local run for the supplied source revision `3a993268f31e` reported **35 test suites and 233 tests passing**, including the real Chromium retry smoke. A separately installed local tarball also passed JavaScript/TypeScript entrypoint checks, CLI initialization, execution, and report verification. These are recorded local results, not a live CI badge or a guarantee that every environment has been tested.
 
-The documentation package adds no runtime dependencies or execution-code changes. After applying it, review the diff and run the relevant documentation/packaging checks before committing. A public release, npm publication, or merge into `main` must be verified separately; none is implied by this README.
+The release-readiness changes were merged into `main` through PR #20 (`352a6fc`). The Claude Code integration smoke described above was subsequently completed against that revision. These are recorded local results, not a live CI badge or a guarantee that every environment has been tested. No npm registry publication has been verified. This documentation update adds no runtime dependencies or execution-code changes.
 
 <a id="roadmap"></a>
 ## Roadmap
