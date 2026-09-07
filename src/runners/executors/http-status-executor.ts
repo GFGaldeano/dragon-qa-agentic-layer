@@ -201,13 +201,17 @@ export class HttpStatusExecutor
         actualStatus !==
         intent.expectedStatus
       ) {
+        const failure = {
+          type: "http" as const,
+          message:
+            `Expected HTTP ${intent.expectedStatus}, received HTTP ${actualStatus}.`,
+          statusCode: actualStatus
+        };
+
         const verdict =
-          this.failureAnalyzer.classify({
-            type: "http",
-            message:
-              `Expected HTTP ${intent.expectedStatus}, received HTTP ${actualStatus}.`,
-            statusCode: actualStatus
-          });
+          this.failureAnalyzer.classify(
+            failure
+          );
 
         return {
           scenarioId: scenario.id,
@@ -218,8 +222,9 @@ export class HttpStatusExecutor
           durationMs:
             Date.now() - started,
           message:
-            `Expected HTTP ${intent.expectedStatus}, received HTTP ${actualStatus}.`,
-          evidence
+            failure.message,
+          evidence,
+          failure
         };
       }
 
@@ -236,9 +241,12 @@ export class HttpStatusExecutor
         evidence
       };
     } catch (error) {
+      const failure =
+        extractFailureSignal(error);
+
       const verdict =
         this.failureAnalyzer.classify(
-          extractFailureSignal(error)
+          failure
         );
 
       return {
@@ -253,7 +261,8 @@ export class HttpStatusExecutor
           error instanceof Error
             ? error.message
             : String(error),
-        evidence: []
+        evidence: [],
+        failure
       };
     } finally {
       if (browserContext) {

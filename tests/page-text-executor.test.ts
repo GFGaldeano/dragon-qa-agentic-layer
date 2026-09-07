@@ -232,6 +232,11 @@ describe(
         expect(result.message).toContain(
           'Expected page text to contain "Dragon QA"'
         );
+
+        expect(result).toHaveProperty(
+          "failure.type",
+          "assertion"
+        );
       }
     );
 
@@ -286,6 +291,11 @@ describe(
         expect(
           result.message.length
         ).toBeGreaterThan(0);
+
+        expect(result).toHaveProperty(
+          "failure.type",
+          "network"
+        );
       }
     );
   }

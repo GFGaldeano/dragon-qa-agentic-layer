@@ -175,6 +175,11 @@ describe(
         expect(
           result.message.length
         ).toBeGreaterThan(0);
+
+        expect(result).toHaveProperty(
+          "failure.type",
+          "network"
+        );
       }
     );
   }
