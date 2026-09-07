@@ -29,8 +29,10 @@ import {
   DragonConfig
 } from "../config/schema";
 
-import {
-  DragonRunResult
+import type {
+  DragonRunResult,
+  RetryHistorySnapshot,
+  TestExecutionResult
 } from "../contracts/types";
 
 import {
@@ -40,6 +42,10 @@ import {
 import {
   requiresHumanApproval
 } from "../verdicts/human-approval-policy";
+
+import {
+  resolveRetryOutcome
+} from "../verdicts/retry-outcome-policy";
 
 export interface DragonOrchestratorDependencies {
   planner?: PlannerProviderResolverDependencies;
@@ -108,11 +114,13 @@ export class DragonOrchestrator {
         failureAnalyzer
       );
 
-    const results = [];
+    const results: TestExecutionResult[] = [];
+    const retryHistories: RetryHistorySnapshot[] = [];
+    let retryApprovalRequired = false;
 
     for (const scenario of plan.scenarios) {
-      const result =
-        await runner.execute(
+      const execution =
+        await runner.executeWithHistory(
           scenario,
           {
             runDirectory,
@@ -121,7 +129,32 @@ export class DragonOrchestrator {
           }
         );
 
-      results.push(result);
+      const outcome =
+        resolveRetryOutcome(
+          execution.history,
+          this.config.autonomy.level
+        );
+
+      if (outcome.result === undefined) {
+        throw new Error(
+          "Retry outcome has no execution result."
+        );
+      }
+
+      results.push(outcome.result);
+
+      retryHistories.push({
+        scenarioId: scenario.id,
+        retriesUsed:
+          execution.history.retriesUsed,
+        attempts: [
+          ...execution.history.attempts
+        ]
+      });
+
+      retryApprovalRequired =
+        retryApprovalRequired ||
+        outcome.humanApprovalRequired;
     }
 
     const finalVerdict =
@@ -139,9 +172,11 @@ export class DragonOrchestrator {
       requirement,
       plan,
       results,
+      retryHistories,
       finalVerdict,
 
       humanApprovalRequired:
+        retryApprovalRequired ||
         requiresHumanApproval(
           this.config.autonomy.level,
           results

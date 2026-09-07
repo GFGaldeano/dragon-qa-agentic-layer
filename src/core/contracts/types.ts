@@ -2,6 +2,10 @@ import type {
   FailureSignal
 } from "./failure-signal";
 
+import type {
+  RetryAttemptRecord
+} from "../retry/retry-attempt-history";
+
 export type AutonomyLevel =
   | "observe"
   | "assist"
@@ -93,6 +97,12 @@ export interface TestExecutionResult {
   failure?: FailureSignal;
 }
 
+export interface RetryHistorySnapshot {
+  scenarioId: string;
+  retriesUsed: number;
+  attempts: RetryAttemptRecord[];
+}
+
 export interface DragonRunResult {
   runId: string;
   startedAt: string;
@@ -101,6 +111,7 @@ export interface DragonRunResult {
   requirement: RequirementInput;
   plan: TestPlan;
   results: TestExecutionResult[];
+  retryHistories?: RetryHistorySnapshot[];
   finalVerdict: QAVerdict;
   humanApprovalRequired: boolean;
 }
