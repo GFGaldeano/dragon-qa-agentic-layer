@@ -5,6 +5,7 @@
   "author": "Gustavo Federico Galdeano <Dragon Pyramid>",
   "license": "MIT",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "bin": {
     "dragon-qa": "dist/cli/index.js"
   },
