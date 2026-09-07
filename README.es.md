@@ -30,6 +30,7 @@
 - [Referencia de configuración](#configuration)
 - [Cómo adaptar DRAGON QA a cualquier proyecto](#project-adaptation)
 - [Planificación LLM opcional](#providers)
+- [Integración con Claude Code](#claude-code)
 - [Autonomía, política de ejecución y gobernanza](#autonomy)
 - [Verificaciones confiables soportadas](#trusted-checks)
 - [Reintentos acotados y clasificación FLAKY](#retries)
@@ -70,6 +71,7 @@ La siguiente tabla distingue el comportamiento implementado de lo planificado. Q
 | Inteligencia de fallos | Señales estructuradas, clasificación determinística, agregación de veredictos técnicos y bandera separada de aprobación humana. |
 | Reintentos | Reintentos acotados y opt-in para fallos de red/timeout, historial por intento, rutas de evidencia aisladas y clasificación conservadora FLAKY. |
 | Configuración por proyecto | YAML, override de URL por CLI, selección de planificador determinístico/LLM y entrada pública TypeScript/JavaScript. |
+| Uso desde Claude Code | Flujo CLI externo validado localmente con Playwright y lectura de reportes; no implica un adaptador nativo de Anthropic. |
 | Todavía no implementado | Agentes generales de acciones de navegador, self-healing de selectores, automatización de flujos de negocio específicos, testing general de API/contratos/accesibilidad/visual, dashboard e integraciones Jira/GitHub/MCP listas para usar. |
 
 El esquema ya contiene flags para API, accesibilidad y testing visual. Esos flags **no** significan que existan los runners generales correspondientes. Del mismo modo, un modelo puede proponer esos tipos de escenarios, pero los no soportados quedan para revisión manual. Los directorios de adaptadores y del runner API describen explícitamente trabajo futuro.
@@ -323,6 +325,19 @@ El modelo debe devolver JSON válido conforme al esquema estricto de planificaci
 
 **Compatibilidad no significa soporte universal de proveedores.** Es necesario probar el endpoint compatible y su modelo. Los adaptadores nativos Anthropic/Claude, la integración de planificación MCP y otros proveedores siguen siendo trabajo futuro. `.env.example` enumera posibles credenciales de integración, pero el CLI actual no lo carga automáticamente y su existencia no demuestra que esas integraciones estén implementadas.
 
+<a id="claude-code"></a>
+## Integración con Claude Code
+
+DRAGON QA puede utilizarse desde Claude Code como herramienta CLI externa. Claude Code puede ejecutar la aplicación, consultar sus reportes JSON/Markdown y asistir a QA en la interpretación de resultados. Para este flujo no es necesario configurar Claude Code como proveedor LLM interno de DRAGON.
+
+Se completó un smoke local de integración con Claude Code 2.1.72, Node.js 24.15.0, DRAGON QA 0.1.0-alpha y Playwright Chromium. La prueba utilizó una aplicación HTTP temporal, planificación determinística, autonomía `assist` y reintentos desactivados.
+
+La ejecución generó cuatro escenarios: S001 se ejecutó y pasó; S002–S004 permanecieron para revisión manual. El veredicto final fue `REVIEW`, con `humanApprovalRequired: true`. Se verificaron las evidencias de captura, traza y reportes JSON y Markdown.
+
+Esto valida el flujo básico **Claude Code → CLI de DRAGON QA → Playwright → reportes → revisión de QA**. No demuestra integración nativa con la API de Anthropic, autonomía irrestricta de navegador ni preparación para todos los entornos empresariales.
+
+El cliente de planificación compatible con OpenAI continúa disponible por separado. Requiere un endpoint de chat completions compatible y un modelo que cumpla el contrato estricto de planificación de DRAGON. La compatibilidad con cada proveedor/modelo debe verificarse; este smoke de Claude Code no probó la API oficial de OpenAI.
+
 <a id="autonomy"></a>
 ## Autonomía, política de ejecución y gobernanza
 
@@ -536,7 +551,7 @@ git diff --check
 
 La última ejecución local verificada por el usuario para la revisión fuente `3a993268f31e` informó **35 suites y 233 tests PASS**, incluido el smoke real de retries con Chromium. Un tarball local instalado externamente también pasó verificaciones de entradas JavaScript/TypeScript, inicialización CLI, ejecución y reportes. Son resultados locales registrados, no un badge de CI en vivo ni una garantía de prueba en todos los entornos.
 
-El paquete de documentación no agrega dependencias de runtime ni cambios en el código de ejecución. Después de aplicarlo, revisá el diff y ejecutá los controles de documentación/empaquetado pertinentes antes del commit. Una publicación pública, publicación npm o merge a `main` debe verificarse por separado; este README no implica que haya ocurrido.
+Los cambios de release readiness se integraron en `main` mediante el PR #20 (`352a6fc`). Posteriormente se completó el smoke de integración con Claude Code descrito arriba sobre esa revisión. Son resultados locales registrados, no un badge de CI en vivo ni una garantía de prueba en todos los entornos. No se ha verificado una publicación en el registro npm. Esta actualización documental no agrega dependencias de runtime ni cambios en el código de ejecución.
 
 <a id="roadmap"></a>
 ## Roadmap
